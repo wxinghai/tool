@@ -1,23 +1,977 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <link rel="stylesheet" href="/sample-ex-tool/assets/uni.9a26c2f0.css">
-
-    <meta charset="UTF-8" />
-    <script>
-      var coverSupport = 'CSS' in window && typeof CSS.supports === 'function' && (CSS.supports('top: env(a)') ||
-        CSS.supports('top: constant(a)'))
-      document.write(
-        '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' +
-        (coverSupport ? ', viewport-fit=cover' : '') + '" />')
-    </script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💪 训练助手</title>
-    <!--preload-links-->
-    <!--app-context-->
-    <script type="module" crossorigin src="/sample-ex-tool/assets/index-D31kkTKz.js"></script>
-    <link rel="stylesheet" crossorigin href="/sample-ex-tool/assets/index-C7CChAY5.css">
-  </head>
-  <body>
-    <div id="app"><!--app-html--></div>
-  </body>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* 顶部标题栏 */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #ffffff;
+            padding: 20px 15px 10px 15px;
+            border-bottom: 1px solid #e9ecef;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .header-content {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .app-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a1a1a;
+            display: block;
+            margin-bottom: 4px;
+            letter-spacing: -0.25px;
+        }
+
+        .app-subtitle {
+            font-size: 13px;
+            color: #666;
+            display: block;
+            font-weight: 400;
+        }
+
+        /* 顶部训练结果显示 */
+        .header-result {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .result-header-info {
+            margin-bottom: 10px;
+        }
+
+        .intensity-display {
+            font-size: 13px;
+            font-weight: 600;
+            color: #495057;
+            display: block;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
+        }
+
+        /* 所有项目列表 */
+        .all-exercises {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .exercise-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 8px 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .exercise-info {
+            flex: 1;
+        }
+
+        .exercise-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #212529;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .exercise-1rm {
+            font-size: 11px;
+            color: #6c757d;
+            display: block;
+            font-weight: 500;
+        }
+
+        .exercise-weight {
+            display: flex;
+            align-items: baseline;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border-radius: 6px;
+            padding: 4px 8px;
+        }
+
+        .weight-number {
+            font-size: 18px;
+            font-weight: 800;
+            color: white;
+            margin-right: 3px;
+            line-height: 1;
+        }
+
+        .weight-unit {
+            font-size: 12px;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            padding: 10px 15px 0 15px;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .card-icon {
+            font-size: 16px;
+            margin-right: 8px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1a1a;
+            letter-spacing: -0.15px;
+        }
+
+        /* 现代化选择器 */
+        .modern-picker {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .modern-picker:hover {
+            border-color: #dee2e6;
+        }
+
+        .modern-picker:active {
+            transform: scale(0.98);
+            background: #e9ecef;
+            border-color: #dee2e6;
+        }
+
+        .picker-content {
+            flex: 1;
+        }
+
+        .picker-main {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .picker-sub {
+            font-size: 12px;
+            color: #666;
+            display: block;
+        }
+
+        .picker-arrow {
+            font-size: 12px;
+            color: #6c757d;
+            font-weight: 500;
+            transition: transform 0.3s ease;
+        }
+
+        /* 输入组件 */
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .input-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .input-icon {
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+        .input-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modern-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0 12px;
+            transition: all 0.3s ease;
+        }
+
+        .modern-input-wrapper:focus-within {
+            border-color: #007bff;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .modern-input {
+            flex: 1;
+            height: 44px;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            font-weight: 500;
+            color: #1a1a1a;
+            outline: none;
+        }
+
+        .input-unit {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+            margin-left: 6px;
+        }
+
+        /* 计算结果显示 */
+        .result-display {
+            margin-top: 16px;
+            padding: 14px;
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .result-icon {
+            font-size: 12px;
+            margin-right: 6px;
+        }
+
+        .result-title {
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .result-value {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 6px;
+        }
+
+        .result-number {
+            font-size: 28px;
+            font-weight: 800;
+            margin-right: 4px;
+            line-height: 1;
+        }
+
+        .result-unit {
+            font-size: 16px;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        .result-formula {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            padding: 6px 8px;
+        }
+
+        .formula-text {
+            font-size: 12px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* 数据管理 */
+        .manage-actions {
+            display: flex;
+            justify-content: center;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .action-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 1px 4px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-icon {
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        .btn-text {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* 底部间距 */
+        .bottom-space {
+            height: 20px;
+        }
+
+        /* 下拉选择器样式 */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f8f9fa;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-item.selected {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 480px) {
+            .header {
+                padding: 15px 10px 8px 10px;
+            }
+            
+            .main-content {
+                padding: 8px 10px 0 10px;
+            }
+            
+            .card {
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部标题栏 -->
+        <div class="header">
+            <div class="header-content">
+                <span class="app-title">💪 训练助手</span>
+                <span class="app-subtitle">科学训练，精确计算</span>
+            </div>
+            
+            <!-- 顶部训练结果显示 -->
+            <div class="header-result" id="headerResult">
+                <div class="result-header-info">
+                    <span class="intensity-display" id="intensityDisplay">75.00% - 4×6</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 75%"></div>
+                    </div>
+                </div>
+                
+                <!-- 所有有数据的项目列表 -->
+                <div class="all-exercises" id="allExercises">
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- 训练强度卡片 -->
+            <div class="card intensity-card">
+                <div class="card-header">
+                    <span class="card-icon">🎯</span>
+                    <span class="card-title">训练强度</span>
+                </div>
+                <div class="dropdown" id="intensityDropdown">
+                    <div class="modern-picker intensity-picker" id="intensityPicker">
+                        <div class="picker-content">
+                            <span class="picker-main" id="selectedIntensityLabel">75.00%</span>
+                            <span class="picker-sub" id="selectedIntensitySets">4×6</span>
+                        </div>
+                        <span class="picker-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-menu" id="intensityMenu">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 运动项目卡片 -->
+            <div class="card exercise-card">
+                <div class="card-header">
+                    <span class="card-icon">🏋️</span>
+                    <span class="card-title">运动项目</span>
+                </div>
+                <div class="dropdown" id="exerciseDropdown">
+                    <div class="modern-picker exercise-picker" id="exercisePicker">
+                        <div class="picker-content">
+                            <span class="picker-main" id="selectedExerciseLabel">卧推</span>
+                            <span class="picker-sub">选择训练项目</span>
+                        </div>
+                        <span class="picker-arrow">▼</span>
+                    </div>
+                    <div class="dropdown-menu" id="exerciseMenu">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据输入卡片 -->
+            <div class="card input-card">
+                <div class="card-header">
+                    <span class="card-icon">📊</span>
+                    <span class="card-title">输入数据</span>
+                </div>
+                
+                <!-- 引体向上特殊输入 -->
+                <div id="pullupContainer" class="pullup-container" style="display: none;">
+                    <div class="input-group">
+                        <div class="input-header">
+                            <span class="input-icon">⚖️</span>
+                            <span class="input-title">体重</span>
+                        </div>
+                        <div class="modern-input-wrapper">
+                            <input type="number" placeholder="请输入体重" id="pullupBodyWeight" class="modern-input">
+                            <span class="input-unit">kg</span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="input-header">
+                            <span class="input-icon">🏋️</span>
+                            <span class="input-title">负重</span>
+                        </div>
+                        <div class="modern-input-wrapper">
+                            <input type="number" placeholder="请输入1RM负重" id="pullupWeight" class="modern-input">
+                            <span class="input-unit">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 其他运动输入 -->
+                <div id="normalExerciseContainer" class="normal-exercise-container">
+                    <div class="input-group">
+                        <div class="input-header">
+                            <span class="input-icon">🏋️</span>
+                            <span class="input-title">1RM重量</span>
+                        </div>
+                        <div class="modern-input-wrapper">
+                            <input type="number" placeholder="请输入1RM重量" id="normalWeight" class="modern-input">
+                            <span class="input-unit">kg</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 计算结果显示 -->
+                <div class="result-display" id="resultDisplay" style="display: none;">
+                    <div class="result-header">
+                        <span class="result-icon">🔥</span>
+                        <span class="result-title">训练重量</span>
+                    </div>
+                    <div class="result-value">
+                        <span class="result-number" id="resultNumber">0.00</span>
+                        <span class="result-unit">kg</span>
+                    </div>
+                    <div class="result-formula">
+                        <span class="formula-text" id="formulaText">0kg × 75.00%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据管理卡片 -->
+            <div class="card manage-card">
+                <div class="card-header">
+                    <span class="card-icon">🛠️</span>
+                    <span class="card-title">数据管理</span>
+                </div>
+                <div class="manage-actions">
+                    <button class="action-btn" id="clearBtn">
+                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-text">清空数据</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 底部间距 -->
+            <div class="bottom-space"></div>
+        </div>
+    </div>
+
+    <script>
+        // 训练强度列表
+        const intensityList = [
+            { label: '70.00%', sets: '4×8', value: 70.00 },
+            { label: '71.25%', sets: '4×8', value: 71.25 },
+            { label: '72.50%', sets: '4×8', value: 72.50 },
+            { label: '73.75%', sets: '4×8', value: 73.75 },
+            { label: '75.00%', sets: '4×6', value: 75.00 },
+            { label: '70.00%', sets: '3×5', value: 70.00 },
+            { label: '76.25%', sets: '4×6', value: 76.25 },
+            { label: '77.50%', sets: '4×6', value: 77.50 },
+            { label: '78.75%', sets: '5×5', value: 78.75 },
+            { label: '80.00%', sets: '5×5', value: 80.00 },
+            { label: '81.25%', sets: '5×5', value: 81.25 },
+            { label: '70.00%', sets: '3×5', value: 70.00 },
+            { label: '82.50%', sets: '5×5', value: 82.50 },
+            { label: '83.75%', sets: '4×4', value: 83.75 },
+            { label: '85.00%', sets: '4×4', value: 85.00 },
+            { label: '86.25%', sets: '4×4', value: 86.25 },
+            { label: '87.50%', sets: '4×4', value: 87.50 },
+            { label: '70.00%', sets: '3×5', value: 70.00 },
+            { label: '88.75%', sets: '4×4', value: 88.75 },
+            { label: '90.00%', sets: '3×3', value: 90.00 },
+            { label: '91.25%', sets: '3×3', value: 91.25 },
+            { label: '92.50%', sets: '3×3', value: 92.50 },
+            { label: '93.75%', sets: '3×3', value: 93.75 },
+            { label: '95.00%', sets: '3×3', value: 95.00 },
+            { label: '96.25%', sets: '1×1', value: 96.25 }
+        ];
+
+        // 运动项目列表
+        const exerciseList = [
+            { label: '卧推', value: 'bench' },
+            { label: '深蹲', value: 'squat' },
+            { label: '硬拉', value: 'deadlift' },
+            { label: '引体向上', value: 'pullup' },
+            { label: '其它', value: 'other' }
+        ];
+
+        // 应用状态
+        let selectedIntensity = { label: '75.00%', sets: '4×6', value: 75.00 };
+        let selectedExercise = { label: '卧推', value: 'bench' };
+        let exerciseData = {
+            bench: { weight: '' },
+            squat: { weight: '' },
+            deadlift: { weight: '' },
+            pullup: { bodyWeight: '', weight: '' },
+            other: { weight: '' }
+        };
+
+        // DOM元素
+        const elements = {
+            intensityPicker: document.getElementById('intensityPicker'),
+            intensityMenu: document.getElementById('intensityMenu'),
+            selectedIntensityLabel: document.getElementById('selectedIntensityLabel'),
+            selectedIntensitySets: document.getElementById('selectedIntensitySets'),
+            exercisePicker: document.getElementById('exercisePicker'),
+            exerciseMenu: document.getElementById('exerciseMenu'),
+            selectedExerciseLabel: document.getElementById('selectedExerciseLabel'),
+            pullupContainer: document.getElementById('pullupContainer'),
+            normalExerciseContainer: document.getElementById('normalExerciseContainer'),
+            pullupBodyWeight: document.getElementById('pullupBodyWeight'),
+            pullupWeight: document.getElementById('pullupWeight'),
+            normalWeight: document.getElementById('normalWeight'),
+            resultDisplay: document.getElementById('resultDisplay'),
+            resultNumber: document.getElementById('resultNumber'),
+            formulaText: document.getElementById('formulaText'),
+            headerResult: document.getElementById('headerResult'),
+            intensityDisplay: document.getElementById('intensityDisplay'),
+            progressFill: document.getElementById('progressFill'),
+            allExercises: document.getElementById('allExercises'),
+            clearBtn: document.getElementById('clearBtn')
+        };
+
+        // 初始化应用
+        function init() {
+            loadTrainingData();
+            setupEventListeners();
+            populateDropdowns();
+            updateUI();
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 强度选择器
+            elements.intensityPicker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleDropdown('intensity');
+            });
+
+            // 运动项目选择器
+            elements.exercisePicker.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleDropdown('exercise');
+            });
+
+            // 输入框事件
+            elements.pullupBodyWeight.addEventListener('input', handleInputChange);
+            elements.pullupWeight.addEventListener('input', handleInputChange);
+            elements.normalWeight.addEventListener('input', handleInputChange);
+
+            // 清空数据按钮
+            elements.clearBtn.addEventListener('click', clearTrainingData);
+
+            // 点击其他地方关闭下拉菜单
+            document.addEventListener('click', closeAllDropdowns);
+        }
+
+        // 填充下拉菜单
+        function populateDropdowns() {
+            // 强度菜单
+            elements.intensityMenu.innerHTML = '';
+            intensityList.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'dropdown-item';
+                div.innerHTML = `<strong>${item.label}</strong> - ${item.sets}`;
+                div.addEventListener('click', () => selectIntensity(index));
+                elements.intensityMenu.appendChild(div);
+            });
+
+            // 运动项目菜单
+            elements.exerciseMenu.innerHTML = '';
+            exerciseList.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'dropdown-item';
+                div.textContent = item.label;
+                div.addEventListener('click', () => selectExercise(index));
+                elements.exerciseMenu.appendChild(div);
+            });
+        }
+
+        // 切换下拉菜单
+        function toggleDropdown(type) {
+            closeAllDropdowns();
+            const menu = type === 'intensity' ? elements.intensityMenu : elements.exerciseMenu;
+            menu.classList.add('show');
+        }
+
+        // 关闭所有下拉菜单
+        function closeAllDropdowns() {
+            elements.intensityMenu.classList.remove('show');
+            elements.exerciseMenu.classList.remove('show');
+        }
+
+        // 选择强度
+        function selectIntensity(index) {
+            selectedIntensity = intensityList[index];
+            updateUI();
+            saveTrainingData();
+            closeAllDropdowns();
+        }
+
+        // 选择运动项目
+        function selectExercise(index) {
+            selectedExercise = exerciseList[index];
+            updateUI();
+            saveTrainingData();
+            closeAllDropdowns();
+        }
+
+        // 处理输入变化
+        function handleInputChange() {
+            const currentExercise = selectedExercise.value;
+            
+            if (currentExercise === 'pullup') {
+                exerciseData.pullup.bodyWeight = elements.pullupBodyWeight.value;
+                exerciseData.pullup.weight = elements.pullupWeight.value;
+            } else {
+                exerciseData[currentExercise].weight = elements.normalWeight.value;
+            }
+            
+            updateUI();
+            saveTrainingData();
+        }
+
+        // 计算训练重量
+        function calculateWeights() {
+            const results = {};
+            const intensity = selectedIntensity.value / 100;
+            
+            Object.keys(exerciseData).forEach(exercise => {
+                const data = exerciseData[exercise];
+                
+                if (exercise === 'pullup') {
+                    const bodyWeight = parseFloat(data.bodyWeight) || 0;
+                    const weight = parseFloat(data.weight) || 0;
+                    if (bodyWeight > 0) {
+                        results[exercise] = ((bodyWeight + weight) * intensity - bodyWeight).toFixed(2);
+                    } else {
+                        results[exercise] = '0.00';
+                    }
+                } else {
+                    const weight = parseFloat(data.weight) || 0;
+                    results[exercise] = (weight * intensity).toFixed(2);
+                }
+            });
+            
+            return results;
+        }
+
+        // 获取有数据的运动项目
+        function getExercisesWithData() {
+            return Object.keys(exerciseData).filter(exercise => {
+                const data = exerciseData[exercise];
+                if (exercise === 'pullup') {
+                    return data.bodyWeight || data.weight;
+                } else {
+                    return data.weight;
+                }
+            });
+        }
+
+        // 获取运动项目标签
+        function getExerciseLabel(value) {
+            const exercise = exerciseList.find(item => item.value === value);
+            return exercise ? exercise.label : value;
+        }
+
+        // 获取1RM信息
+        function getExercise1RM(exercise) {
+            const data = exerciseData[exercise];
+            if (exercise === 'pullup') {
+                const bodyWeight = data.bodyWeight || 0;
+                const weight = data.weight || 0;
+                if (bodyWeight || weight) {
+                    return `体重:${bodyWeight}kg 负重:${weight}kg`;
+                }
+                return '';
+            } else {
+                const weight = data.weight || 0;
+                return weight ? `1RM: ${weight}kg` : '';
+            }
+        }
+
+        // 获取当前公式
+        function getCurrentFormula() {
+            const data = exerciseData[selectedExercise.value];
+            if (selectedExercise.value === 'pullup') {
+                const bodyWeight = data.bodyWeight || 0;
+                const weight = data.weight || 0;
+                return `(${bodyWeight} + ${weight}) × ${selectedIntensity.label} - ${bodyWeight}`;
+            } else {
+                const weight = data.weight || 0;
+                return `${weight} × ${selectedIntensity.label}`;
+            }
+        }
+
+        // 更新UI
+        function updateUI() {
+            // 更新选择器显示
+            elements.selectedIntensityLabel.textContent = selectedIntensity.label;
+            elements.selectedIntensitySets.textContent = selectedIntensity.sets;
+            elements.selectedExerciseLabel.textContent = selectedExercise.label;
+
+            // 切换输入容器
+            if (selectedExercise.value === 'pullup') {
+                elements.pullupContainer.style.display = 'block';
+                elements.normalExerciseContainer.style.display = 'none';
+                elements.pullupBodyWeight.value = exerciseData.pullup.bodyWeight;
+                elements.pullupWeight.value = exerciseData.pullup.weight;
+            } else {
+                elements.pullupContainer.style.display = 'none';
+                elements.normalExerciseContainer.style.display = 'block';
+                elements.normalWeight.value = exerciseData[selectedExercise.value].weight;
+            }
+
+            // 计算结果
+            const calculatedWeights = calculateWeights();
+            const currentWeight = calculatedWeights[selectedExercise.value] || '0.00';
+            
+            // 更新当前项目结果显示
+            const hasCurrentData = (selectedExercise.value === 'pullup') ? 
+                (exerciseData.pullup.bodyWeight || exerciseData.pullup.weight) :
+                exerciseData[selectedExercise.value].weight;
+
+            if (hasCurrentData) {
+                elements.resultDisplay.style.display = 'block';
+                elements.resultNumber.textContent = currentWeight;
+                elements.formulaText.textContent = getCurrentFormula();
+            } else {
+                elements.resultDisplay.style.display = 'none';
+            }
+
+            // 更新顶部结果显示
+            updateHeaderResult(calculatedWeights);
+        }
+
+        // 更新顶部结果显示
+        function updateHeaderResult(calculatedWeights) {
+            const exercisesWithData = getExercisesWithData();
+            
+            if (exercisesWithData.length > 0) {
+                elements.headerResult.style.display = 'block';
+                elements.intensityDisplay.textContent = `${selectedIntensity.label} - ${selectedIntensity.sets}`;
+                elements.progressFill.style.width = selectedIntensity.value + '%';
+                
+                // 更新项目列表
+                elements.allExercises.innerHTML = '';
+                exercisesWithData.forEach(exercise => {
+                    const div = document.createElement('div');
+                    div.className = 'exercise-item';
+                    div.innerHTML = `
+                        <div class="exercise-info">
+                            <span class="exercise-name">${getExerciseLabel(exercise)}</span>
+                            <span class="exercise-1rm">${getExercise1RM(exercise)}</span>
+                        </div>
+                        <div class="exercise-weight">
+                            <span class="weight-number">${calculatedWeights[exercise] || '0.00'}</span>
+                            <span class="weight-unit">kg</span>
+                        </div>
+                    `;
+                    elements.allExercises.appendChild(div);
+                });
+            } else {
+                elements.headerResult.style.display = 'none';
+            }
+        }
+
+        // 保存训练数据
+        function saveTrainingData() {
+            try {
+                const dataToSave = {
+                    exerciseData: exerciseData,
+                    selectedIntensity: selectedIntensity,
+                    selectedExercise: selectedExercise,
+                    lastUpdated: new Date().toISOString()
+                };
+                localStorage.setItem('trainingData', JSON.stringify(dataToSave));
+                console.log('训练数据已保存');
+            } catch (error) {
+                console.error('保存训练数据失败:', error);
+            }
+        }
+
+        // 加载训练数据
+        function loadTrainingData() {
+            try {
+                const savedData = localStorage.getItem('trainingData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    exerciseData = data.exerciseData || exerciseData;
+                    selectedIntensity = data.selectedIntensity || selectedIntensity;
+                    selectedExercise = data.selectedExercise || selectedExercise;
+                    console.log('训练数据已加载');
+                }
+            } catch (error) {
+                console.error('读取训练数据失败:', error);
+            }
+        }
+
+        // 清空训练数据
+        function clearTrainingData() {
+            if (confirm('确定要清空所有训练数据吗？')) {
+                try {
+                    localStorage.removeItem('trainingData');
+                    exerciseData = {
+                        bench: { weight: '' },
+                        squat: { weight: '' },
+                        deadlift: { weight: '' },
+                        pullup: { bodyWeight: '', weight: '' },
+                        other: { weight: '' }
+                    };
+                    selectedIntensity = { label: '75.00%', sets: '4×6', value: 75.00 };
+                    selectedExercise = { label: '卧推', value: 'bench' };
+                    updateUI();
+                    console.log('训练数据已清空');
+                } catch (error) {
+                    console.error('清空训练数据失败:', error);
+                }
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
 </html>
