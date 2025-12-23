@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>训练助手</title>
+    <title>RPE 强度换算量表</title>
     <style>
         * {
             margin: 0;
@@ -11,1127 +11,641 @@
             box-sizing: border-box;
         }
 
-        html, body {
-            overflow-x: hidden;
-            width: 100%;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f8f9fa;
-            color: #212529;
-            line-height: 1.6;
-            min-height: 100vh;
-            margin: 0;
-            padding: 0;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
         }
 
-        /* 确保页面可以完整滚动 */
-        .app-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        /* 顶部标题栏 */
-        .header {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: #ffffff;
-            padding: 20px 15px 10px 15px;
-            border-bottom: 1px solid #e9ecef;
-            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .header-content {
+        h1 {
             text-align: center;
-            margin-bottom: 10px;
-        }
-
-        .app-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: #1a1a1a;
-            display: block;
-            margin-bottom: 4px;
-            letter-spacing: -0.25px;
-        }
-
-        .app-subtitle {
-            font-size: 13px;
-            color: #666;
-            display: block;
-            font-weight: 400;
-        }
-
-        /* 顶部训练结果显示 */
-        .header-result {
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e9ecef;
-            display: none;
-        }
-
-        .result-header-info {
-            margin-bottom: 10px;
-        }
-
-        .intensity-display {
-            font-size: 13px;
-            font-weight: 600;
-            color: #495057;
-            display: block;
-            text-align: center;
-            margin-bottom: 6px;
-        }
-
-        /* 进度条 */
-        .progress-bar {
-            height: 4px;
-            background: #e9ecef;
-            border-radius: 2px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #007bff 0%, #0056b3 100%);
-            border-radius: 2px;
-            transition: width 0.3s ease;
-            box-shadow: 0 0 4px rgba(0, 123, 255, 0.3);
-        }
-
-        /* 所有项目列表 */
-        .all-exercises {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .exercise-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 8px 10px;
-            border: 1px solid #e9ecef;
-        }
-
-        .exercise-info {
-            flex: 1;
-        }
-
-        .exercise-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: #212529;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .exercise-1rm {
-            font-size: 11px;
-            color: #6c757d;
-            display: block;
-            font-weight: 500;
-        }
-
-        .exercise-weight {
-            display: flex;
-            align-items: baseline;
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            border-radius: 6px;
-            padding: 4px 8px;
-        }
-
-        .weight-number {
-            font-size: 18px;
-            font-weight: 800;
+            background-color: #2c3e50;
             color: white;
-            margin-right: 3px;
-            line-height: 1;
-        }
-
-        .weight-unit {
-            font-size: 12px;
-            font-weight: 600;
-            color: white;
-        }
-
-        /* 主内容区 */
-        .main-content {
-            padding: 10px 15px 30px 15px;
-            flex: 1;
-        }
-
-        /* 卡片样式 */
-        .card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-            border: 1px solid #e9ecef;
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .card-icon {
-            font-size: 16px;
-            margin-right: 8px;
-        }
-
-        .card-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #1a1a1a;
-            letter-spacing: -0.15px;
-        }
-
-        /* 现代化选择器 */
-        .modern-picker {
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 14px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            min-height: 48px;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-
-        .modern-picker:hover {
-            border-color: #dee2e6;
-        }
-
-        .modern-picker:active {
-            transform: scale(0.98);
-            background: #e9ecef;
-            border-color: #dee2e6;
-        }
-
-        .picker-content {
-            flex: 1;
-        }
-
-        .picker-main {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a1a1a;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .picker-sub {
-            font-size: 13px;
-            color: #666;
-            display: block;
-        }
-
-        .picker-arrow {
-            font-size: 12px;
-            color: #6c757d;
-            font-weight: 500;
-            transition: transform 0.3s ease;
-        }
-
-        /* 输入组件 */
-        .input-group {
-            margin-bottom: 16px;
-        }
-
-        .input-group:last-child {
-            margin-bottom: 0;
-        }
-
-        .input-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .input-icon {
-            font-size: 14px;
-            margin-right: 8px;
-        }
-
-        .input-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .modern-input-wrapper {
-            display: flex;
-            align-items: center;
-            background: #f8f9fa;
-            border: 2px solid #e9ecef;
-            border-radius: 8px;
-            padding: 0 14px;
-            transition: all 0.3s ease;
-            min-height: 52px;
-        }
-
-        .modern-input-wrapper:focus-within {
-            border-color: #007bff;
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-        }
-
-        .modern-input {
-            flex: 1;
-            height: 48px;
-            border: none;
-            background: transparent;
-            font-size: 16px;
-            font-weight: 500;
-            color: #1a1a1a;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
-            user-select: text;
-        }
-
-        .input-unit {
-            font-size: 15px;
-            color: #666;
-            font-weight: 500;
-            margin-left: 8px;
-        }
-
-        /* 计算结果显示 */
-        .result-display {
-            margin-top: 16px;
-            padding: 14px;
-            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-            border-radius: 10px;
-            color: white;
-        }
-
-        .result-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .result-icon {
-            font-size: 12px;
-            margin-right: 6px;
-        }
-
-        .result-title {
-            font-size: 13px;
-            font-weight: 600;
-            opacity: 0.9;
-        }
-
-        .result-value {
-            display: flex;
-            align-items: baseline;
-            margin-bottom: 6px;
-        }
-
-        .result-number {
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
             font-size: 28px;
-            font-weight: 800;
-            margin-right: 4px;
-            line-height: 1;
+            letter-spacing: 3px;
         }
 
-        .result-unit {
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 2px solid #333;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        th {
+            background-color: #ecf0f1;
             font-size: 16px;
-            font-weight: 600;
-            opacity: 0.8;
         }
 
-        .result-formula {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 6px;
-            padding: 6px 8px;
+        .rpe-label {
+            background-color: #ecf0f1;
+            font-size: 16px;
+            vertical-align: middle;
         }
 
-        .formula-text {
-            font-size: 12px;
-            opacity: 0.9;
-            font-weight: 400;
+        .reps-header {
+            background-color: #ecf0f1;
         }
 
-        /* 数据管理 */
-        .manage-actions {
+        /* 颜色渐变 - 红色区域 (高强度) */
+        .intensity-100 { background-color: #ff6b6b; }
+        .intensity-95-99 { background-color: #ff7b7b; }
+        .intensity-90-94 { background-color: #ff8b8b; }
+        .intensity-85-89 { background-color: #ff9b9b; }
+        
+        /* 黄色区域 (中高强度) */
+        .intensity-80-84 { background-color: #ffd93d; }
+        .intensity-75-79 { background-color: #ffe066; }
+        
+        /* 绿色区域 (中低强度) */
+        .intensity-70-74 { background-color: #95e1d3; }
+        .intensity-65-69 { background-color: #a8e6cf; }
+        .intensity-60-64 { background-color: #b8ebd6; }
+
+        .source {
+            text-align: right;
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .diagram-section {
+            margin-top: 50px;
+        }
+
+        .diagram-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .strength-diagram {
             display: flex;
-            justify-content: center;
+            height: 80px;
+            border: 2px solid #333;
+            position: relative;
+            margin-bottom: 30px;
+            max-width: 500px;
         }
 
-        .action-btn {
+        .zone {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-
-        .action-btn:active {
-            transform: translateY(1px);
-            box-shadow: 0 1px 4px rgba(255, 107, 107, 0.4);
-        }
-
-        .btn-icon {
+            font-weight: bold;
             font-size: 12px;
-            margin-right: 4px;
-        }
-
-        .btn-text {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        /* 下拉选择器样式 */
-        .dropdown {
+            border-right: 2px solid #333;
             position: relative;
         }
 
-        .dropdown-menu {
+        .zone:last-child {
+            border-right: none;
+        }
+
+        .zone-max {
+            background-color: #ffb3ba;
+            width: 20%;
+        }
+
+        .zone-strength-hypertrophy {
+            background-color: #ffd93d;
+            width: 40%;
+        }
+
+        .zone-hypertrophy-endurance {
+            background-color: #95e1d3;
+            width: 40%;
+        }
+
+        .label {
             position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #e9ecef;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .label-top {
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .label-bottom {
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .zone-label-row {
+            display: flex;
+            max-width: 500px;
+        }
+
+        .zone-label-item {
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 5px 0;
+        }
+
+        /* 计算器样式 */
+        .calculator {
+            background-color: #f8f9fa;
+            border: 2px solid #2c3e50;
             border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-            max-height: 250px;
-            overflow-y: auto;
-            z-index: 9999;
-            display: none;
-            margin-top: 4px;
+            padding: 20px;
+            margin-bottom: 30px;
         }
 
-        .dropdown-menu.show {
-            display: block;
+        .calculator-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
         }
 
-        .dropdown-item {
-            padding: 14px 16px;
-            cursor: pointer;
-            border-bottom: 1px solid #f8f9fa;
-            transition: background-color 0.2s;
-            font-size: 15px;
-            min-height: 48px;
+        .calc-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .calc-group {
             display: flex;
             align-items: center;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
+            gap: 8px;
         }
 
-        .dropdown-item:hover {
-            background-color: #f8f9fa;
+        .calc-group label {
+            font-weight: bold;
+            font-size: 14px;
         }
 
-        .dropdown-item:last-child {
-            border-bottom: none;
+        .calc-group input, .calc-group select {
+            padding: 8px 12px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 120px;
         }
 
-        .dropdown-item.selected {
-            background-color: #007bff;
+        .calc-group input:focus, .calc-group select:focus {
+            border-color: #2c3e50;
+            outline: none;
+        }
+
+        .calc-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .calc-btn-primary {
+            background-color: #2c3e50;
             color: white;
         }
 
-        /* 响应式设计 */
+        .calc-btn-primary:hover {
+            background-color: #1a252f;
+        }
+
+        .calc-btn-secondary {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .calc-btn-secondary:hover {
+            background-color: #7f8c8d;
+        }
+
+        .weight-group {
+            display: none;
+        }
+
+        .weight-group.show {
+            display: flex;
+        }
+
+        .weight-display {
+            font-size: 11px;
+            color: #2c3e50;
+            display: block;
+            margin-top: 2px;
+        }
+
         @media (max-width: 768px) {
-            .header {
-                padding: 16px 12px 10px 12px;
+            body {
+                padding: 10px;
             }
             
-            .main-content {
-                padding: 12px 12px 30px 12px;
+            .container {
+                padding: 15px;
             }
             
-            .card {
-                padding: 16px;
-                margin-bottom: 12px;
-                border-radius: 12px;
-            }
-
-            .app-title {
-                font-size: 20px;
-            }
-
-            .app-subtitle {
-                font-size: 12px;
-            }
-
-            .dropdown-menu {
-                max-height: 200px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            }
-
-            .dropdown-item {
-                padding: 16px;
-                min-height: 52px;
-                font-size: 16px;
-            }
-
-            .modern-picker {
-                padding: 16px;
-                min-height: 52px;
-            }
-
-            .picker-main {
-                font-size: 17px;
-            }
-
-            .picker-sub {
-                font-size: 14px;
-            }
-
-            .modern-input-wrapper {
-                min-height: 56px;
-                padding: 0 16px;
-            }
-
-            .modern-input {
-                height: 52px;
-                font-size: 17px;
-            }
-
-            .input-title {
-                font-size: 16px;
-            }
-
-            .input-icon {
-                font-size: 15px;
-            }
-
-            .input-unit {
-                font-size: 16px;
-            }
-
-            .result-display {
-                margin-top: 20px;
-                padding: 16px;
-            }
-
-            .result-number {
-                font-size: 32px;
-            }
-
-            .result-unit {
+            h1 {
                 font-size: 18px;
+                padding: 10px;
+                letter-spacing: 1px;
+            }
+            
+            /* 计算器移动端适配 */
+            .calculator {
+                padding: 15px;
             }
 
-            .formula-text {
+            .calculator-title {
+                font-size: 16px;
+                margin-bottom: 12px;
+            }
+
+            .calc-row {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+            .calc-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .calc-group label {
                 font-size: 13px;
             }
 
-            .action-btn {
-                padding: 12px 20px;
-                font-size: 15px;
-                min-height: 48px;
+            .calc-group input, .calc-group select {
+                width: 100%;
+                padding: 10px;
+                font-size: 16px;
+            }
+
+            .weight-group.show {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .calc-btn {
+                width: 100%;
+                padding: 12px;
+                font-size: 16px;
+            }
+
+            /* 表格移动端适配 */
+            table {
+                font-size: 10px;
+            }
+            
+            th, td {
+                padding: 4px 2px;
+            }
+
+            .rpe-label {
+                font-size: 10px;
+            }
+
+            .weight-display {
+                font-size: 9px;
+            }
+
+            /* 图示移动端适配 */
+            .diagram-section {
+                margin-top: 30px;
+            }
+
+            .diagram-title {
+                font-size: 16px;
+            }
+
+            .strength-diagram {
+                height: 60px;
+            }
+
+            .zone-label-item {
+                font-size: 9px;
+            }
+
+            .source {
+                font-size: 12px;
             }
         }
 
         @media (max-width: 480px) {
-            .header {
-                padding: 12px 10px 8px 10px;
-            }
-            
-            .main-content {
-                padding: 10px 10px 25px 10px;
-            }
-            
-            .card {
-                padding: 14px;
-                margin-bottom: 10px;
+            body {
+                padding: 5px;
             }
 
-            .app-title {
-                font-size: 18px;
+            .container {
+                padding: 10px;
             }
 
-            .dropdown-menu {
-                max-height: 180px;
-            }
-
-            .modern-picker {
-                padding: 14px;
-                min-height: 50px;
-            }
-
-            .modern-input-wrapper {
-                min-height: 54px;
-                padding: 0 14px;
-            }
-
-            .modern-input {
-                height: 50px;
+            h1 {
                 font-size: 16px;
+                padding: 8px;
             }
-        }
 
-        /* 特殊处理iOS Safari */
-        @supports (-webkit-touch-callout: none) {
-            .modern-input {
-                font-size: 16px;
+            table {
+                font-size: 8px;
+            }
+
+            th, td {
+                padding: 3px 1px;
+            }
+
+            .rpe-label {
+                font-size: 8px;
+            }
+
+            .weight-display {
+                font-size: 7px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- 顶部标题栏 -->
-        <div class="header">
-            <div class="header-content">
-                <span class="app-title">强度计算</span>
-            </div>
-            
-            <!-- 顶部训练结果显示 -->
-            <div class="header-result" id="headerResult">
-                <div class="result-header-info">
-                    <span class="intensity-display" id="intensityDisplay">75.00% - 4×6</span>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill" style="width: 75%"></div>
-                    </div>
+    <div class="container">
+        <h1>RPE 强度换算量表</h1>
+        
+        <!-- 计算器 -->
+        <div class="calculator">
+            <div class="calculator-title">训练重量计算器</div>
+            <div class="calc-row">
+                <div class="calc-group">
+                    <label>计算类型:</label>
+                    <select id="calcType" onchange="toggleWeightInput()">
+                        <option value="normal">普通 (1RM×强度)</option>
+                        <option value="bodyweight">体重 ((体重+1RM)×强度-体重)</option>
+                    </select>
                 </div>
-                
-                <!-- 所有有数据的项目列表 -->
-                <div class="all-exercises" id="allExercises">
+                <div class="calc-group">
+                    <label>1RM重量(kg):</label>
+                    <input type="number" id="oneRM" placeholder="如: 100" step="0.5">
                 </div>
+                <div class="calc-group weight-group" id="bodyweightGroup">
+                    <label>体重(kg):</label>
+                    <input type="number" id="bodyweight" placeholder="如: 70" step="0.5">
+                </div>
+                <button class="calc-btn calc-btn-primary" onclick="calculate()">计算</button>
+                <button class="calc-btn calc-btn-secondary" onclick="clearCalculation()">清除</button>
             </div>
         </div>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="rpe-label" colspan="2">REPS</th>
+                        <th class="reps-header">1</th>
+                        <th class="reps-header">2</th>
+                        <th class="reps-header">3</th>
+                        <th class="reps-header">4</th>
+                        <th class="reps-header">5</th>
+                        <th class="reps-header">6</th>
+                        <th class="reps-header">7</th>
+                        <th class="reps-header">8</th>
+                        <th class="reps-header">9</th>
+                        <th class="reps-header">10</th>
+                        <th class="reps-header">11</th>
+                        <th class="reps-header">12</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="rpe-label" rowspan="8">R<br>P<br>E</td>
+                        <td class="rpe-label">10</td>
+                        <td class="intensity-100">100.0%</td>
+                        <td class="intensity-95-99">95.5%</td>
+                        <td class="intensity-90-94">92.2%</td>
+                        <td class="intensity-85-89">89.2%</td>
+                        <td class="intensity-85-89">86.3%</td>
+                        <td class="intensity-80-84">83.7%</td>
+                        <td class="intensity-80-84">81.1%</td>
+                        <td class="intensity-75-79">78.6%</td>
+                        <td class="intensity-75-79">76.2%</td>
+                        <td class="intensity-70-74">73.9%</td>
+                        <td class="intensity-70-74">70.7%</td>
+                        <td class="intensity-65-69">68.0%</td>
+                    </tr>
+                    <tr>
+                        <td class="rpe-label">9.5</td>
+                        <td class="intensity-95-99">97.8%</td>
+                        <td class="intensity-90-94">93.9%</td>
+                        <td class="intensity-90-94">90.7%</td>
+                        <td class="intensity-85-89">87.8%</td>
+                        <td class="intensity-85-89">85.0%</td>
+                        <td class="intensity-80-84">82.4%</td>
+                        <td class="intensity-75-79">79.9%</td>
+                        <td class="intensity-75-79">77.4%</td>
+                        <td class="intensity-75-79">75.1%</td>
+                        <td class="intensity-70-74">72.3%</td>
+                        <td class="intensity-65-69">69.4%</td>
+                        <td class="intensity-65-69">66.7%</td>
+                    </tr>
+                    <tr>
+                        <td class="rpe-label">9</td>
+                        <td class="intensity-95-99">95.5%</td>
+                        <td class="intensity-90-94">92.2%</td>
+                        <td class="intensity-85-89">89.2%</td>
+                        <td class="intensity-85-89">86.3%</td>
+                        <td class="intensity-80-84">83.7%</td>
+                        <td class="intensity-80-84">81.1%</td>
+                        <td class="intensity-75-79">78.6%</td>
+                        <td class="intensity-75-79">76.2%</td>
+                        <td class="intensity-70-74">73.9%</td>
+                        <td class="intensity-70-74">70.7%</td>
+                        <td class="intensity-65-69">68.0%</td>
+                        <td class="intensity-65-69">65.3%</td>
+                    </tr>
+                    <tr>
+                        <td class="rpe-label">8.5</td>
+                        <td class="intensity-90-94">93.9%</td>
+                        <td class="intensity-90-94">90.7%</td>
+                        <td class="intensity-85-89">87.8%</td>
+                        <td class="intensity-85-89">85.0%</td>
+                        <td class="intensity-80-84">82.4%</td>
+                        <td class="intensity-75-79">79.9%</td>
+                        <td class="intensity-75-79">77.4%</td>
+                        <td class="intensity-75-79">75.1%</td>
+                        <td class="intensity-70-74">72.3%</td>
+                        <td class="intensity-65-69">69.4%</td>
+                        <td class="intensity-65-69">66.7%</td>
+                        <td class="intensity-60-64">64.0%</td>
+                    </tr>
+                    <tr>
+                        <td class="rpe-label">8</td>
+                        <td class="intensity-90-94">92.2%</td>
+                        <td class="intensity-85-89">89.2%</td>
+                        <td class="intensity-85-89">86.3%</td>
+                        <td class="intensity-80-84">83.7%</td>
+                        <td class="intensity-80-84">81.1%</td>
+                        <td class="intensity-75-79">78.6%</td>
+                        <td class="intensity-75-79">76.2%</td>
+                        <td class="intensity-70-74">73.9%</td>
+                        <td class="intensity-70-74">70.7%</td>
+                        <td class="intensity-65-69">68.0%</td>
+                        <td class="intensity-65-69">65.3%</td>
+                        <td class="intensity-60-64">62.6%</td>
+                    </tr>
+                    <tr>
+                        <td class="rpe-label">7.5</td>
+                        <td class="intensity-90-94">90.7%</td>
+                        <td class="intensity-85-89">87.8%</td>
+                        <td class="intensity-85-89">85.0%</td>
+                        <td class="intensity-80-84">82.4%</td>
+                        <td class="intensity-75-79">79.9%</td>
+                        <td class="intensity-75-79">77.4%</td>
+                        <td class="intensity-75-79">75.1%</td>
+                        <td class="intensity-70-74">72.3%</td>
+                        <td class="intensity-65-69">69.4%</td>
+                        <td class="intensity-65-69">66.7%</td>
+                        <td class="intensity-60-64">64.0%</td>
+                        <td class="intensity-60-64">61.3%</td>
+                    </tr>
+                    <tr>
+                        <td class="rpe-label">7</td>
+                        <td class="intensity-85-89">89.2%</td>
+                        <td class="intensity-85-89">86.3%</td>
+                        <td class="intensity-80-84">83.7%</td>
+                        <td class="intensity-80-84">81.1%</td>
+                        <td class="intensity-75-79">78.6%</td>
+                        <td class="intensity-75-79">76.2%</td>
+                        <td class="intensity-70-74">73.9%</td>
+                        <td class="intensity-70-74">70.7%</td>
+                        <td class="intensity-65-69">68.0%</td>
+                        <td class="intensity-65-69">65.3%</td>
+                        <td class="intensity-60-64">62.6%</td>
+                        <td class="intensity-60-64">59.9%</td>
+                    </tr>
+                    <tr>
+                        <td class="rpe-label">6.5</td>
+                        <td class="intensity-85-89">87.8%</td>
+                        <td class="intensity-85-89">85.0%</td>
+                        <td class="intensity-80-84">82.4%</td>
+                        <td class="intensity-75-79">79.9%</td>
+                        <td class="intensity-75-79">77.4%</td>
+                        <td class="intensity-75-79">75.1%</td>
+                        <td class="intensity-70-74">72.3%</td>
+                        <td class="intensity-65-69">69.4%</td>
+                        <td class="intensity-65-69">66.7%</td>
+                        <td class="intensity-60-64">64.0%</td>
+                        <td class="intensity-60-64">61.3%</td>
+                        <td class="intensity-60-64">58.6%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="source">图片来源：data-drivenstrength</div>
+        </div>
 
-        <div class="main-content">
-            <!-- 训练强度卡片 -->
-            <div class="card intensity-card">
-                <div class="card-header">
-                    <!-- <span class="card-icon"></span> -->
-                    <span class="card-title">训练强度</span>
-                </div>
-                <div class="dropdown" id="intensityDropdown">
-                    <div class="modern-picker intensity-picker" id="intensityPicker">
-                        <div class="picker-content">
-                            <span class="picker-main" id="selectedIntensityLabel">75.00%</span>
-                            <span class="picker-sub" id="selectedIntensitySets">4×6</span>
-                        </div>
-                        <span class="picker-arrow">▼</span>
-                    </div>
-                    <div class="dropdown-menu" id="intensityMenu">
-                    </div>
-                </div>
+        <div class="diagram-section">
+            <div class="diagram-title">训练强度区域说明</div>
+            <div class="zone-label-row">
+                <span class="zone-label-item" style="width:20%;">最大肌力区</span>
+                <span class="zone-label-item" style="width:40%;"></span>
+                <span class="zone-label-item" style="width:40%;">肌肥大与肌耐力区</span>
             </div>
-
-            <!-- 运动项目卡片 -->
-            <div class="card exercise-card">
-                <div class="card-header">
-                    <span class="card-icon">🏋️</span>
-                    <span class="card-title">运动项目</span>
-                </div>
-                <div class="dropdown" id="exerciseDropdown">
-                    <div class="modern-picker exercise-picker" id="exercisePicker">
-                        <div class="picker-content">
-                            <span class="picker-main" id="selectedExerciseLabel">卧推</span>
-                            <span class="picker-sub">选择训练项目</span>
-                        </div>
-                        <span class="picker-arrow">▼</span>
-                    </div>
-                    <div class="dropdown-menu" id="exerciseMenu">
-                    </div>
-                </div>
+            <div class="strength-diagram">
+                <div class="zone zone-max"></div>
+                <div class="zone zone-strength-hypertrophy"></div>
+                <div class="zone zone-hypertrophy-endurance"></div>
             </div>
-
-            <!-- 数据输入卡片 -->
-            <div class="card input-card">
-                <div class="card-header">
-                    <span class="card-icon">📊</span>
-                    <span class="card-title">输入数据</span>
-                </div>
-                
-                <!-- 引体向上特殊输入 -->
-                <div id="pullupContainer" class="pullup-container" style="display: none;">
-                    <div class="input-group">
-                        <div class="input-header">
-                            <span class="input-icon">⚖️</span>
-                            <span class="input-title">体重</span>
-                        </div>
-                        <div class="modern-input-wrapper">
-                            <input  placeholder="请输入体重" id="pullupBodyWeight" class="modern-input">
-                            <span class="input-unit">kg</span>
-                        </div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <div class="input-header">
-                            <span class="input-icon">🏋️</span>
-                            <span class="input-title">负重</span>
-                        </div>
-                        <div class="modern-input-wrapper">
-                            <input  placeholder="请输入1RM负重" id="pullupWeight" class="modern-input">
-                            <span class="input-unit">kg</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 其他运动输入 -->
-                <div id="normalExerciseContainer" class="normal-exercise-container">
-                    <div class="input-group">
-                        <div class="input-header">
-                            <span class="input-icon">🏋️</span>
-                            <span class="input-title">1RM重量</span>
-                        </div>
-                        <div class="modern-input-wrapper">
-                            <input  placeholder="请输入1RM重量" id="normalWeight" class="modern-input">
-                            <span class="input-unit">kg</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 计算结果显示 -->
-                <div class="result-display" id="resultDisplay" style="display: none;">
-                    <div class="result-header">
-                        <span class="result-icon">🔥</span>
-                        <span class="result-title">训练重量</span>
-                    </div>
-                    <div class="result-value">
-                        <span class="result-number" id="resultNumber">0.00</span>
-                        <span class="result-unit">kg</span>
-                    </div>
-                    <div class="result-formula">
-                        <span class="formula-text" id="formulaText">0kg × 75.00%</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 数据管理卡片 -->
-            <div class="card manage-card">
-                <div class="card-header">
-                    <span class="card-icon">🛠️</span>
-                    <span class="card-title">数据管理</span>
-                </div>
-                <div class="manage-actions">
-                    <button class="action-btn" id="clearBtn">
-                        <span class="btn-icon">🗑️</span>
-                        <span class="btn-text">清空数据</span>
-                    </button>
-                </div>
+            <div class="zone-label-row">
+                <span class="zone-label-item" style="width:20%;"></span>
+                <span class="zone-label-item" style="width:40%;">肌力与肌肥大区</span>
+                <span class="zone-label-item" style="width:40%;"></span>
             </div>
         </div>
     </div>
 
     <script>
-        // 训练强度列表
-        const intensityList = [
-            { label: '70.00%', sets: '4×8', value: 70.00 },
-            { label: '71.25%', sets: '4×8', value: 71.25 },
-            { label: '72.50%', sets: '4×8', value: 72.50 },
-            { label: '73.75%', sets: '4×7', value: 73.75 },
-            { label: '75.00%', sets: '4×7', value: 75.00 },
-            { label: '70.00%', sets: '3×5', value: 70.00 },
-            { label: '76.25%', sets: '4×6', value: 76.25 },
-            { label: '77.50%', sets: '5×5', value: 77.50 },
-            { label: '78.75%', sets: '5×5', value: 78.75 },
-            { label: '80.00%', sets: '4×5', value: 80.00 },
-            { label: '81.25%', sets: '4×5', value: 81.25 },
-            { label: '70.00%', sets: '3×5', value: 70.00 },
-            { label: '82.50%', sets: '4×4', value: 82.50 },
-            { label: '83.75%', sets: '4×4', value: 83.75 },
-            { label: '85.00%', sets: '4×4', value: 85.00 },
-            { label: '86.25%', sets: '3×4', value: 86.25 },
-            { label: '87.50%', sets: '3×4', value: 87.50 },
-            { label: '70.00%', sets: '3×5', value: 70.00 },
-            { label: '88.75%', sets: '3×4', value: 88.75 },
-            { label: '90.00%', sets: '3×3', value: 90.00 },
-            { label: '91.25%', sets: '3×2', value: 91.25 },
-            { label: '92.50%', sets: '3×1', value: 92.50 },
-            { label: '93.75%', sets: '2×1', value: 93.75 },
-            { label: '95.00%', sets: '1x1', value: 95.00 }
-        ];
+        // 存储原始百分比值
+        var originalData = {};
 
-        // 运动项目列表
-        const exerciseList = [
-            { label: '卧推', value: 'bench' },
-            { label: '深蹲', value: 'squat' },
-            { label: '硬拉', value: 'deadlift' },
-            { label: '引体向上', value: 'pullup' },
-            { label: '其它', value: 'other' }
-        ];
+        // 初始化：保存原始数据
+        document.querySelectorAll('td[class^="intensity-"]').forEach(function(cell, index) {
+            originalData[index] = cell.textContent;
+        });
 
-        // 应用状态
-        let selectedIntensity = { label: '75.00%', sets: '4×6', value: 75.00 };
-        let selectedExercise = { label: '卧推', value: 'bench' };
-        let exerciseData = {
-            bench: { weight: '' },
-            squat: { weight: '' },
-            deadlift: { weight: '' },
-            pullup: { bodyWeight: '', weight: '' },
-            other: { weight: '' }
-        };
-
-        // DOM元素
-        const elements = {
-            intensityPicker: document.getElementById('intensityPicker'),
-            intensityMenu: document.getElementById('intensityMenu'),
-            selectedIntensityLabel: document.getElementById('selectedIntensityLabel'),
-            selectedIntensitySets: document.getElementById('selectedIntensitySets'),
-            exercisePicker: document.getElementById('exercisePicker'),
-            exerciseMenu: document.getElementById('exerciseMenu'),
-            selectedExerciseLabel: document.getElementById('selectedExerciseLabel'),
-            pullupContainer: document.getElementById('pullupContainer'),
-            normalExerciseContainer: document.getElementById('normalExerciseContainer'),
-            pullupBodyWeight: document.getElementById('pullupBodyWeight'),
-            pullupWeight: document.getElementById('pullupWeight'),
-            normalWeight: document.getElementById('normalWeight'),
-            resultDisplay: document.getElementById('resultDisplay'),
-            resultNumber: document.getElementById('resultNumber'),
-            formulaText: document.getElementById('formulaText'),
-            headerResult: document.getElementById('headerResult'),
-            intensityDisplay: document.getElementById('intensityDisplay'),
-            progressFill: document.getElementById('progressFill'),
-            allExercises: document.getElementById('allExercises'),
-            clearBtn: document.getElementById('clearBtn')
-        };
-
-        // 初始化应用
-        function init() {
-            loadTrainingData();
-            setupEventListeners();
-            populateDropdowns();
-            updateUI();
-        }
-
-        // 设置事件监听器
-        function setupEventListeners() {
-            // 强度选择器
-            elements.intensityPicker.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleDropdown('intensity');
-            });
-
-            // 运动项目选择器
-            elements.exercisePicker.addEventListener('click', (e) => {
-                e.stopPropagation();
-                toggleDropdown('exercise');
-            });
-
-            // 输入框事件
-            elements.pullupBodyWeight.addEventListener('input', handleInputChange);
-            elements.pullupWeight.addEventListener('input', handleInputChange);
-            elements.normalWeight.addEventListener('input', handleInputChange);
-
-            // 清空数据按钮
-            elements.clearBtn.addEventListener('click', clearTrainingData);
-
-            // 点击其他地方关闭下拉菜单
-            document.addEventListener('click', closeAllDropdowns);
-
-            // 防止下拉菜单内的点击冒泡
-            elements.intensityMenu.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-            elements.exerciseMenu.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
-
-        // 填充下拉菜单
-        function populateDropdowns() {
-            // 强度菜单
-            elements.intensityMenu.innerHTML = '';
-            intensityList.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'dropdown-item';
-                div.innerHTML = `<strong>${item.label}</strong> - ${item.sets}`;
-                div.addEventListener('click', () => selectIntensity(index));
-                elements.intensityMenu.appendChild(div);
-            });
-
-            // 运动项目菜单
-            elements.exerciseMenu.innerHTML = '';
-            exerciseList.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'dropdown-item';
-                div.textContent = item.label;
-                div.addEventListener('click', () => selectExercise(index));
-                elements.exerciseMenu.appendChild(div);
-            });
-        }
-
-        // 切换下拉菜单
-        function toggleDropdown(type) {
-            closeAllDropdowns();
-            const menu = type === 'intensity' ? elements.intensityMenu : elements.exerciseMenu;
-            menu.classList.add('show');
-            
-            // 确保下拉菜单在可视区域内
-            setTimeout(() => {
-                const menuRect = menu.getBoundingClientRect();
-                const viewportHeight = window.innerHeight;
-                
-                if (menuRect.bottom > viewportHeight) {
-                    const overflow = menuRect.bottom - viewportHeight + 10;
-                    window.scrollBy(0, overflow);
-                }
-            }, 10);
-        }
-
-        // 关闭所有下拉菜单
-        function closeAllDropdowns() {
-            elements.intensityMenu.classList.remove('show');
-            elements.exerciseMenu.classList.remove('show');
-        }
-
-        // 选择强度
-        function selectIntensity(index) {
-            selectedIntensity = intensityList[index];
-            updateUI();
-            saveTrainingData();
-            closeAllDropdowns();
-        }
-
-        // 选择运动项目
-        function selectExercise(index) {
-            selectedExercise = exerciseList[index];
-            updateUI();
-            saveTrainingData();
-            closeAllDropdowns();
-        }
-
-        // 处理输入变化
-        function handleInputChange() {
-            const currentExercise = selectedExercise.value;
-            
-            if (currentExercise === 'pullup') {
-                exerciseData.pullup.bodyWeight = elements.pullupBodyWeight.value;
-                exerciseData.pullup.weight = elements.pullupWeight.value;
+        // 切换体重输入框显示
+        function toggleWeightInput() {
+            var calcType = document.getElementById('calcType').value;
+            var bodyweightGroup = document.getElementById('bodyweightGroup');
+            if (calcType === 'bodyweight') {
+                bodyweightGroup.classList.add('show');
             } else {
-                exerciseData[currentExercise].weight = elements.normalWeight.value;
+                bodyweightGroup.classList.remove('show');
             }
-            
-            updateUI();
-            saveTrainingData();
         }
 
-        // 计算训练重量
-        function calculateWeights() {
-            const results = {};
-            const intensity = selectedIntensity.value / 100;
-            
-            Object.keys(exerciseData).forEach(exercise => {
-                const data = exerciseData[exercise];
-                
-                if (exercise === 'pullup') {
-                    const bodyWeight = parseFloat(data.bodyWeight) || 0;
-                    const weight = parseFloat(data.weight) || 0;
-                    if (bodyWeight > 0) {
-                        results[exercise] = ((bodyWeight + weight) * intensity - bodyWeight).toFixed(2);
-                    } else {
-                        results[exercise] = '0.00';
-                    }
+        // 计算并更新表格
+        function calculate() {
+            var calcType = document.getElementById('calcType').value;
+            var oneRM = parseFloat(document.getElementById('oneRM').value);
+            var bodyweight = parseFloat(document.getElementById('bodyweight').value);
+
+            if (isNaN(oneRM) || oneRM <= 0) {
+                alert('请输入有效的1RM重量');
+                return;
+            }
+
+            if (calcType === 'bodyweight' && (isNaN(bodyweight) || bodyweight <= 0)) {
+                alert('请输入有效的体重');
+                return;
+            }
+
+            document.querySelectorAll('td[class^="intensity-"]').forEach(function(cell, index) {
+                var percentText = originalData[index];
+                var percent = parseFloat(percentText) / 100;
+                var weight;
+
+                if (calcType === 'normal') {
+                    // 普通计算: 1RM × 强度
+                    weight = oneRM * percent;
                 } else {
-                    const weight = parseFloat(data.weight) || 0;
-                    results[exercise] = (weight * intensity).toFixed(2);
+                    // 体重计算: (体重 + 1RM) × 强度 - 体重
+                    weight = (bodyweight + oneRM) * percent - bodyweight;
                 }
-            });
-            
-            return results;
-        }
 
-        // 获取有数据的运动项目
-        function getExercisesWithData() {
-            return Object.keys(exerciseData).filter(exercise => {
-                const data = exerciseData[exercise];
-                if (exercise === 'pullup') {
-                    return data.bodyWeight || data.weight;
-                } else {
-                    return data.weight;
-                }
+                cell.innerHTML = percentText + '<span class="weight-display">' + weight.toFixed(1) + 'kg</span>';
             });
         }
 
-        // 获取运动项目标签
-        function getExerciseLabel(value) {
-            const exercise = exerciseList.find(item => item.value === value);
-            return exercise ? exercise.label : value;
+        // 清除计算结果
+        function clearCalculation() {
+            document.querySelectorAll('td[class^="intensity-"]').forEach(function(cell, index) {
+                cell.textContent = originalData[index];
+            });
         }
-
-        // 获取1RM信息
-        function getExercise1RM(exercise) {
-            const data = exerciseData[exercise];
-            if (exercise === 'pullup') {
-                const bodyWeight = data.bodyWeight || 0;
-                const weight = data.weight || 0;
-                if (bodyWeight || weight) {
-                    return `体重:${bodyWeight}kg 负重:${weight}kg`;
-                }
-                return '';
-            } else {
-                const weight = data.weight || 0;
-                return weight ? `1RM: ${weight}kg` : '';
-            }
-        }
-
-        // 获取当前公式
-        function getCurrentFormula() {
-            const data = exerciseData[selectedExercise.value];
-            if (selectedExercise.value === 'pullup') {
-                const bodyWeight = data.bodyWeight || 0;
-                const weight = data.weight || 0;
-                return `(${bodyWeight} + ${weight}) × ${selectedIntensity.label} - ${bodyWeight}`;
-            } else {
-                const weight = data.weight || 0;
-                return `${weight} × ${selectedIntensity.label}`;
-            }
-        }
-
-        // 更新UI
-        function updateUI() {
-            // 更新选择器显示
-            elements.selectedIntensityLabel.textContent = selectedIntensity.label;
-            elements.selectedIntensitySets.textContent = selectedIntensity.sets;
-            elements.selectedExerciseLabel.textContent = selectedExercise.label;
-
-            // 切换输入容器
-            if (selectedExercise.value === 'pullup') {
-                elements.pullupContainer.style.display = 'block';
-                elements.normalExerciseContainer.style.display = 'none';
-                elements.pullupBodyWeight.value = exerciseData.pullup.bodyWeight;
-                elements.pullupWeight.value = exerciseData.pullup.weight;
-            } else {
-                elements.pullupContainer.style.display = 'none';
-                elements.normalExerciseContainer.style.display = 'block';
-                elements.normalWeight.value = exerciseData[selectedExercise.value].weight;
-            }
-
-            // 计算结果
-            const calculatedWeights = calculateWeights();
-            const currentWeight = calculatedWeights[selectedExercise.value] || '0.00';
-            
-            // 更新当前项目结果显示
-            const hasCurrentData = (selectedExercise.value === 'pullup') ? 
-                (exerciseData.pullup.bodyWeight || exerciseData.pullup.weight) :
-                exerciseData[selectedExercise.value].weight;
-
-            if (hasCurrentData) {
-                elements.resultDisplay.style.display = 'block';
-                elements.resultNumber.textContent = currentWeight;
-                elements.formulaText.textContent = getCurrentFormula();
-            } else {
-                elements.resultDisplay.style.display = 'none';
-            }
-
-            // 更新顶部结果显示
-            updateHeaderResult(calculatedWeights);
-        }
-
-        // 更新顶部结果显示
-        function updateHeaderResult(calculatedWeights) {
-            const exercisesWithData = getExercisesWithData();
-            
-            if (exercisesWithData.length > 0) {
-                elements.headerResult.style.display = 'block';
-                elements.intensityDisplay.textContent = `${selectedIntensity.label} - ${selectedIntensity.sets}`;
-                elements.progressFill.style.width = selectedIntensity.value + '%';
-                
-                // 更新项目列表
-                elements.allExercises.innerHTML = '';
-                exercisesWithData.forEach(exercise => {
-                    const div = document.createElement('div');
-                    div.className = 'exercise-item';
-                    div.innerHTML = `
-                        <div class="exercise-info">
-                            <span class="exercise-name">${getExerciseLabel(exercise)}</span>
-                            <span class="exercise-1rm">${getExercise1RM(exercise)}</span>
-                        </div>
-                        <div class="exercise-weight">
-                            <span class="weight-number">${calculatedWeights[exercise] || '0.00'}</span>
-                            <span class="weight-unit">kg</span>
-                        </div>
-                    `;
-                    elements.allExercises.appendChild(div);
-                });
-            } else {
-                elements.headerResult.style.display = 'none';
-            }
-        }
-
-        // 保存训练数据
-        function saveTrainingData() {
-            try {
-                const dataToSave = {
-                    exerciseData: exerciseData,
-                    selectedIntensity: selectedIntensity,
-                    selectedExercise: selectedExercise,
-                    lastUpdated: new Date().toISOString()
-                };
-                localStorage.setItem('trainingData', JSON.stringify(dataToSave));
-                console.log('训练数据已保存');
-            } catch (error) {
-                console.error('保存训练数据失败:', error);
-            }
-        }
-
-        // 加载训练数据
-        function loadTrainingData() {
-            try {
-                const savedData = localStorage.getItem('trainingData');
-                if (savedData) {
-                    const data = JSON.parse(savedData);
-                    exerciseData = data.exerciseData || exerciseData;
-                    selectedIntensity = data.selectedIntensity || selectedIntensity;
-                    selectedExercise = data.selectedExercise || selectedExercise;
-                    console.log('训练数据已加载');
-                }
-            } catch (error) {
-                console.error('读取训练数据失败:', error);
-            }
-        }
-
-        // 清空训练数据
-        function clearTrainingData() {
-            if (confirm('确定要清空所有训练数据吗？')) {
-                try {
-                    localStorage.removeItem('trainingData');
-                    exerciseData = {
-                        bench: { weight: '' },
-                        squat: { weight: '' },
-                        deadlift: { weight: '' },
-                        pullup: { bodyWeight: '', weight: '' },
-                        other: { weight: '' }
-                    };
-                    selectedIntensity = { label: '75.00%', sets: '4×6', value: 75.00 };
-                    selectedExercise = { label: '卧推', value: 'bench' };
-                    updateUI();
-                    console.log('训练数据已清空');
-                } catch (error) {
-                    console.error('清空训练数据失败:', error);
-                }
-            }
-        }
-
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
